@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@apollo/client";
-import React, { useEffect } from "react";
-import { View, Text, FlatList, Button, StyleSheet, ActivityIndicator } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, FlatList, Button, StyleSheet, ActivityIndicator, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -8,17 +8,23 @@ import { GetActiveCartQuery } from "@/app/api/cart/cartQueries";
 import { UpdatePurchaseItemMutation, RemovePurchaseItemMutation } from "@/app/api/cart/cartMutations";
 import { RootState } from "@/app/redux/store";
 import { setCart, updateItem, removeItem } from "@/app/redux/slices/cartSlice";
+import { CreateOrderMutation } from "@/app/api/order/orderMutations";
+import { ExecutePaymentMutation } from "@/app/api/payment/paymentMutations";
 
 export default function CartScreen() {
   const router = useRouter();
   const dispatch = useDispatch();
+  const cartId = useSelector((state: RootState) => state?.cart.cartId);
   const cartItems = useSelector((state: RootState) => state?.cart.items);
   const cartTotalPrice = useSelector((state: RootState) => state?.cart.totalPrice);
+  const [loadingOrder, setLoadingOrder] = useState(false);
 
   const { loading, error, data } = useQuery(GetActiveCartQuery);
 
   const [updatePurchaseItem] = useMutation(UpdatePurchaseItemMutation);
   const [removePurchaseItem] = useMutation(RemovePurchaseItemMutation);
+  const [createOrder] = useMutation(CreateOrderMutation);
+  const [executePayment] = useMutation(ExecutePaymentMutation);
 
   useEffect(() => {
     if (data?.getActiveCart) {
@@ -63,6 +69,35 @@ export default function CartScreen() {
     }
   };
 
+  const handleMakeOrder = async () => {
+    if (!cartId) {
+      Alert.alert("Error", "Cart ID is missing!");
+      return;
+    }
+
+    try {
+      setLoadingOrder(true);
+
+      const { data: orderData } = await createOrder({ variables: { cartId: Number(cartId) } });
+      const orderId = orderData.createOrder.id;
+
+      const { data: paymentData } = await executePayment({
+        variables: { referenceId: Number(orderId) },
+      });
+      if (paymentData.executePayment.transactionStatus !== "Completed") {
+        Alert.alert("Payment Failed", "Transaction was not successful.");
+        return;
+      }
+
+      router.push(`/features/orders/${orderId}`);
+    } catch (error) {
+      console.error("Order Creation Error:", error);
+      Alert.alert("Error", "Failed to create order or execute payment.");
+    } finally {
+      setLoadingOrder(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Your Cart</Text>
@@ -86,7 +121,7 @@ export default function CartScreen() {
       />
 
       <Text style={styles.totalPrice}>Total: ${cartTotalPrice}</Text>
-      <Button title="Make Order" onPress={() => {}} />
+      <Button title={loadingOrder ? "Processing..." : "Make Order"} onPress={handleMakeOrder} disabled={loadingOrder} />
     </View>
   );
 }

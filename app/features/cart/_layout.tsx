@@ -11,7 +11,6 @@ export default function CartLayout() {
       }}
     >
       <Stack.Screen name="index" options={{ title: "Cart" }} />
-      <Stack.Screen name="checkout" options={{ title: "Checkout" }} />
     </Stack>
   );
 }
