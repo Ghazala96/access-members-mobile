@@ -1,64 +1,43 @@
-import { useMutation } from "@apollo/client";
+import { useQuery } from "@apollo/client";
+import { View, Text, ActivityIndicator, Button, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
-import { useDispatch } from "react-redux";
-import { View, Text, Button, ActivityIndicator, StyleSheet } from "react-native";
-import { useState } from "react";
 
-import { logout } from "../../redux/slices/authSlice";
-import { clearAuthTokens } from "../../utils/storage";
-import { LogoutMutation } from "../../api/authMutations";
+import { getProfileQuery } from "@/app/api/user/userQueries";
 
 export default function DashboardScreen() {
   const router = useRouter();
-  const dispatch = useDispatch();
-  const [loading, setLoading] = useState(false);
+  const { loading, error, data } = useQuery(getProfileQuery);
 
-  const [logoutMutation] = useMutation(LogoutMutation);
+  if (loading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" />
+        <Text>Loading profile...</Text>
+      </View>
+    );
+  }
 
-  const handleLogout = async () => {
-    setLoading(true);
-    try {
-      await logoutMutation();
-    } catch (error: any) {
-      console.warn("Logout failed on server, forcing local logout:", error.message);
-    } finally {
-      await clearAuthTokens(); 
-      dispatch(logout());
+  if (error) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.errorText}>Failed to load profile. Please try again.</Text>
+      </View>
+    );
+  }
 
-      router.replace("/features/auth/login");
-      setLoading(false);
-    }
-  };  
+  const user = data?.getProfile;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome to the Dashboard!</Text>
-
-      {loading ? (
-        <ActivityIndicator size="large" style={{ marginVertical: 20 }} />
-      ) : (
-        <View style={styles.buttonContainer}>
-          <Button title="Logout" onPress={handleLogout} color="red" />
-        </View>
-      )}
+      <Text style={styles.title}>Welcome, {user.firstName} {user.lastName}!</Text>
+      <Button title="View Events" onPress={() => router.push("/features/events")} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    flex: 1,
-    justifyContent: "center",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  buttonContainer: {
-    marginTop: 20,
-    alignItems: "center",
-  },
+  container: { flex: 1, padding: 20, justifyContent: "center" },
+  title: { fontSize: 24, fontWeight: "bold", marginBottom: 10 },
+  centered: { flex: 1, justifyContent: "center", alignItems: "center" },
+  errorText: { color: "red", fontSize: 16 },
 });

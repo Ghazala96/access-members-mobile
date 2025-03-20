@@ -6,7 +6,7 @@ import { useState } from "react";
 
 import { loginSuccess } from "../../redux/slices/authSlice";
 import { saveToken } from "../../utils/storage";
-import { RegisterMutation } from "../../api/authMutations";
+import { RegisterMutation } from "../../api/auth/authMutations";
 
 export default function RegisterScreen() {
   const router = useRouter();

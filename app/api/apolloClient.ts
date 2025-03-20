@@ -2,7 +2,7 @@ import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import * as SecureStore from 'expo-secure-store';
 
-import { RefreshTokenMutation } from './authMutations';
+import { RefreshTokenMutation } from './auth/authMutations';
 
 const httpLink = createHttpLink({
   uri: 'https://8340-41-38-30-52.ngrok-free.app/graphql' //TODO: Env variable

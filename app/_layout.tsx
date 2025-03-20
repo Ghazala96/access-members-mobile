@@ -9,7 +9,17 @@ export default function RootLayout() {
   return (
     <Provider store={store}>
       <ApolloProvider client={client}>
-        <Stack screenOptions={{ headerShown: false }} />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+          }}
+        >
+          <Stack.Screen name="features/auth/register" options={{ title: "Register" }}/>
+          <Stack.Screen name="features/auth/login" options={{ title: "Login" }}/>
+          <Stack.Screen name="features/dashboard/index" options={{ title: "Dashboard" }} />
+          <Stack.Screen name="features/events/index" options={{ title: "Events" }} />
+          <Stack.Screen name="features/events/[id]" options={{ title: "Event Details" }} />
+        </Stack>
       </ApolloProvider>
     </Provider>
   );

@@ -6,7 +6,7 @@ import { useState } from "react";
 
 import { loginSuccess } from "../../redux/slices/authSlice";
 import { saveToken } from "../../utils/storage";
-import { LoginMutation } from "../../api/authMutations";
+import { LoginMutation } from "../../api/auth/authMutations";
 
 export default function LoginScreen() {
   const router = useRouter();
