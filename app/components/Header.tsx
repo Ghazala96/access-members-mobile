@@ -6,6 +6,7 @@ import { useDispatch } from "react-redux";
 import { logout } from "../redux/slices/authSlice";
 import { clearAuthTokens } from "../utils/storage";
 import { LogoutMutation } from "../api/auth/authMutations";
+import { resetState } from "../redux/store";
 
 export default function Header({ title }: { title: string }) {
   const router = useRouter();
@@ -21,6 +22,7 @@ export default function Header({ title }: { title: string }) {
     } finally {
       await clearAuthTokens(); 
       dispatch(logout());
+      dispatch(resetState());
 
       router.replace("/features/auth/login");
     }
